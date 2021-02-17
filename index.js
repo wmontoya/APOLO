@@ -1,7 +1,7 @@
 var express = require('express');
 var bodyParser = require('body-parser');
 const fs = require('fs');
-var toMarkdown = require('to-markdown');
+var MarkdownIt = require('markdown-it'), md = new MarkdownIt();
 
 
 var app = express();
@@ -11,22 +11,28 @@ var port = process.env.PORT || 3525;
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 
+
+
+
 app.get('/', function(req, res){
-	res.status(200).send({
-		message: toMarkdown('<h1>Hello world!</h1>', { gfm: true })
-	});
+    // fs.readFile('C:/Users/wmontoya/Documents/GitHub/APOLO/archivos/file.txt', 'utf-8', (error,datos) => {
+    //     if (error)
+    //       console.log(error);
+    //     else
+    //     var result = md.render(datos);
+    //     res.status(200).send(result);
+    //   });
+    
 });
 
 app.listen(port, function(){
 	// console.log(`Server running in http://localhost:${port}`);
 	// console.log('Defined routes:');
     // console.log('	[GET] http://localhost:3525/');
-    
-   
-      fs.readFile('C:/Users/wmontoya/Documents/GitHub/APOLO/archivos/file.txt', 'utf-8', (error,datos) => {
-        if (error)
-          console.log(error);
-        else
-          console.log(datos.toString());
-      });
+
+    fs.readdir('./archivos/', function (err, files) {
+        files.forEach(file => {
+            console.log(file);
+        });
+    });
 });
