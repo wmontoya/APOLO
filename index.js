@@ -50,11 +50,28 @@ app.listen(port, function(){
 
         });
 
-        listaArchivosCargados= listaArchivosCargados.concat(listaArchivosTemporal);
+        listaArchivosTemporal.sort();
+        listaArchivosCargados.sort();
 
-        listaArchivosCargados = listaArchivosCargados.filter((valor, indiceActual, arreglo) => arreglo.indexOf(valor) === indiceActual);
-        // listaArchivosTemporal.sort();
-        // listaArchivosCargados.sort();
+        let encontrado = false;
+        var diferentes = [];
+        listaArchivosTemporal.forEach(tem =>{
+            listaArchivosCargados.forEach(car =>{
+                if(tem == car){
+                    encontrado = true
+                }
+            })
+            if(encontrado){
+                encontrado = false;
+            }else{
+                encontrado = false;
+                diferentes.push(tem);
+                listaArchivosCargados.push(tem);
+            }
+        })
+
+       console.log("diferentes");
+        console.log(diferentes);
         
 
         console.log("temporal");
