@@ -11,50 +11,87 @@ const { isMainThread } = require('worker_threads');
 //------------- Declaración de variables globales ------------------------
 var app = express();
 var port = process.env.PORT || 3525;
+
 // Convierte una petición recibida (POST-GET...) a objeto JSON
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
+// -----------------------------------------------------------
 
 var listaArchivosCargados =  [];
 var listaArchivosTemporal = [];
+var listaArchivosDiferentes = [];
+
+var correosClientes = ['wmontoya@mpz.go.cr','sanwili@hotmail.com']; // se pueden agregar más correos
+
+// Definición del encabezado de Correo, son los datos del servidor de correo
+var transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    requireTLS: true,
+  auth: {
+    user: 'wmontoya2093@gmail.com',
+    pass: '115290830'
+  }
+});
+
 //------------------------------------------------------------------------
+
+//------ Funciones y procedimientos --------------------------------------
 
 app.get('/', function(req, res){
     res.status(200).send({
-		message: 'GET Home route working fine!'
+		message: 'El servicio web esta funcionando'
 	});
 });
 
+function enviarCorreos(nombreArchivo){ 
+    let falloEnvio = false;
+    console.log('Nuevo archivo encontrado -> '+nombreArchivo+' -> Enviando Email...');
+    fs.readFile('./archivos/'+nombreArchivo+'', 'utf-8', (error,datos) => { // creamos y definimos la raiz donde se encuentran almacenados los archivos.
+        if (error){
+            console.log('Fallo al cargar archivo -> '+error);
+        }else{
+            var mailOptions = {
+                from: correosClientes, // array con la lista de correos a los que se enviara el correo.
+                to: 'wmontoya@mpz.go.cr',
+                subject: 'Notas de interes comercial',
+                html: md.render(datos)
+            };
 
-  
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    falloEnvio = true;
+                    console.log("Fallo: ", error);
+                } else {
+                   falloEnvio = false;
+                }
+            });
+        }
+    }); 
+    if(!falloEnvio){
+        console.log('Correos enviados correctamente...');
+    }
+}
+
 app.listen(port, function(){
   
-
-    function enviarCorreos(nombreArchivo){
-        fs.readFile('./archivos/'+nombreArchivo, 'utf-8', (error,datos) => {
-            if (error)
-              console.log(error);
-            else
-            var result = md.render(datos);
-            res.status(200).send(result);
-          }); 
-    }
-
     let timerId = setInterval(() => {
-       
+       console.log('Revisando archivos...');
         fs.readdir('./archivos/', function (err, files) {
-           if(listaArchivosCargados.length == 0){
+            listaArchivosDiferentes = [];
+            if(listaArchivosCargados.length == 0){
             listaArchivosCargados = files;
+            listaArchivosDiferentes = files;
            }
             listaArchivosTemporal = files;
-
         });
 
-        listaArchivosTemporal.sort();
+        listaArchivosTemporal.sort(); // Ordenar listas
         listaArchivosCargados.sort();
 
-        let encontrado = false;
-        var diferentes = [];
+        let encontrado = false; // Bandera para revisar las listas
+        
         listaArchivosTemporal.forEach(tem =>{
             listaArchivosCargados.forEach(car =>{
                 if(tem == car){
@@ -65,55 +102,23 @@ app.listen(port, function(){
                 encontrado = false;
             }else{
                 encontrado = false;
-                diferentes.push(tem);
+                listaArchivosDiferentes.push(tem);
                 listaArchivosCargados.push(tem);
             }
         })
 
-       console.log("diferentes");
-        console.log(diferentes);
-        
-
-        console.log("temporal");
-        console.log(listaArchivosTemporal);
-        console.log("cargados");
-        console.log(listaArchivosCargados);
-    }, 5000);
+        if(listaArchivosDiferentes != []){
+            listaArchivosDiferentes.forEach(result => {
+                enviarCorreos(result);
+            })
+        }
+    }, 15000);
 
 });   
     
- //Creamos el objeto de transporte
- 
-//  console.log("Creating transport...");
-//     var transporter = nodemailer.createTransport({
-//         host: 'smtp.gmail.com',
-//         port: 587,
-//         secure: false,
-//         requireTLS: true,
-//       auth: {
-//         user: 'wmontoya2093@gmail.com',
-//         pass: '115290830'
-//       }
-//     });
+//------------------------------------------------------------------------
 
-//     var mailOptions = {
-//       from: 'wmontoya2093@gmail.com',
-//       to: 'wmontoya@mpz.go.cr',
-//       subject: 'Sending Email using Node.js',
-//       text: 'That was easy!'
-//     };
 
-//     console.log("sending email", mailOptions);
-//     transporter.sendMail(mailOptions, function (error, info) {
-//       console.log("senMail returned!");
-//       if (error) {
-//         console.log("ERROR!!!!!!", error);
-//       } else {
-//         console.log('Email sent: ' + info.response);
-//       }
-//     });
-
-//     console.log("End of Script");
 
 
 
