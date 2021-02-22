@@ -17,11 +17,11 @@ app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 // -----------------------------------------------------------
 
-var listaArchivosCargados =  [];
-var listaArchivosTemporal = [];
-var listaArchivosDiferentes = [];
+var listaArchivosCargados =  []; // almacena en memoria los rachivos que ya sen enviaron por correo
+var listaArchivosTemporal = []; // almacena los archivos de la carpeta en cada lectura
+var listaArchivosDiferentes = []; // almacena los archivos que aparecen durante la utilización de la aplicación
 
-var correosClientes = ['wmontoya@mpz.go.cr','sanwili@hotmail.com']; // se pueden agregar más correos
+var correosClientes = ['correo1@hotmail.com','correo2@gmail.com']; // se pueden agregar más correos
 
 // Definición del encabezado de Correo, son los datos del servidor de correo
 var transporter = nodemailer.createTransport({
@@ -30,8 +30,8 @@ var transporter = nodemailer.createTransport({
     secure: false,
     requireTLS: true,
   auth: {
-    user: 'wmontoya2093@gmail.com',
-    pass: '115290830'
+    user: 'correo@gmail.com',
+    pass: 'contraseña'
   }
 });
 
@@ -41,7 +41,7 @@ var transporter = nodemailer.createTransport({
 
 app.get('/', function(req, res){
     res.status(200).send({
-		message: 'El servicio web esta funcionando'
+		message: 'El servicio web esta funcionando' //mensaje correcto en el navegador
 	});
 });
 
@@ -54,9 +54,9 @@ function enviarCorreos(nombreArchivo){
         }else{
             var mailOptions = {
                 from: correosClientes, // array con la lista de correos a los que se enviara el correo.
-                to: 'wmontoya@mpz.go.cr',
+                to: 'envia@gmail.com',
                 subject: 'Notas de interes comercial',
-                html: md.render(datos)
+                html: md.render(datos) // se renderisa los archivos y su contenido.
             };
 
             transporter.sendMail(mailOptions, function (error, info) {
@@ -79,8 +79,8 @@ app.listen(port, function(){
     let timerId = setInterval(() => {
        console.log('Revisando archivos...');
         fs.readdir('./archivos/', function (err, files) {
-            listaArchivosDiferentes = [];
-            if(listaArchivosCargados.length == 0){
+            listaArchivosDiferentes = [];       // limpiamos 
+            if(listaArchivosCargados.length == 0){ // si es el primer uso
             listaArchivosCargados = files;
             listaArchivosDiferentes = files;
            }
@@ -93,7 +93,7 @@ app.listen(port, function(){
         let encontrado = false; // Bandera para revisar las listas
         
         listaArchivosTemporal.forEach(tem =>{
-            listaArchivosCargados.forEach(car =>{
+            listaArchivosCargados.forEach(car =>{ // comparamos las listas para determinar que archivo es nuevo con respecto a los guardados en memoria
                 if(tem == car){
                     encontrado = true
                 }
@@ -102,13 +102,13 @@ app.listen(port, function(){
                 encontrado = false;
             }else{
                 encontrado = false;
-                listaArchivosDiferentes.push(tem);
+                listaArchivosDiferentes.push(tem); // agregamos datos a las listas
                 listaArchivosCargados.push(tem);
             }
         })
 
         if(listaArchivosDiferentes != []){
-            listaArchivosDiferentes.forEach(result => {
+            listaArchivosDiferentes.forEach(result => { // se determina los archivos nuevos que seran enviados por correo
                 enviarCorreos(result);
             })
         }
@@ -117,10 +117,5 @@ app.listen(port, function(){
 });   
     
 //------------------------------------------------------------------------
-
-
-
-
-
 
  
